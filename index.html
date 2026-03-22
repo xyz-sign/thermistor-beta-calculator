@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermistor Beta Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --surface: #111720;
+            --surface2: #1a2233;
+            --border: #1e2d42;
+            --accent: #00d4ff;
+            --accent2: #ff6b35;
+            --text: #e0e8f0;
+            --text-dim: #5a7a9a;
+            --success: #00ff9d;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Space Grotesk', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 107, 53, 0.04) 0%, transparent 50%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 740px;
+        }
+
+        header {
+            margin-bottom: 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left {}
+
+        .tag {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        h1 {
+            font-family: var(--mono);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-dim);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .help-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 18px;
+            color: var(--text-dim);
+            font-family: var(--mono);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-top: 6px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .help-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.1);
+            transform: none;
+        }
+
+        .help-btn .icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.4;
+        }
+
+        .card-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-label .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        .points-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .point-col {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .point-col:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .point-num {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+        }
+
+        .target-card {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .target-field { flex: 1; }
+        .target-field label { font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
+        .target-field input { font-size: 18px; padding: 12px 14px; border-color: rgba(0, 212, 255, 0.2); }
+
+        button.calc-btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 28px;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        button.calc-btn:hover {
+            background: #33ddff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button.calc-btn:active { transform: translateY(0); }
+
+        .result-card {
+            display: none;
+            background: var(--surface);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+            opacity: 0.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--success);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-label .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .result-value {
+            font-family: var(--mono);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--success);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        .result-unit { font-size: 18px; color: var(--text-dim); font-weight: 400; margin-left: 4px; }
+
+        .result-desc { margin-top: 12px; font-size: 13px; color: var(--text-dim); font-family: var(--mono); }
+        .result-desc span { color: var(--text); }
+
+        .klipper-hint {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-top: 16px;
+        }
+
+        .klipper-hint-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .klipper-code {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--accent2);
+            white-space: pre;
+            line-height: 1.8;
+        }
+
+        .error {
+            background: rgba(255, 50, 50, 0.08);
+            border: 1px solid rgba(255, 50, 50, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            font-size: 13px;
+            color: #ff6b6b;
+            margin-bottom: 16px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .how-it-works {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            margin-top: 4px;
+        }
+
+        .how-title {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .how-text { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: overlayIn 0.25s ease;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.3s ease;
+            position: relative;
+        }
+
+        .modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.6;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: 24px 28px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-family: var(--mono);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-title span { color: var(--accent); }
+
+        .modal-close {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-family: var(--mono);
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+        }
+
+        .modal-close:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* tab nav */
+        .modal-tabs {
+            display: flex;
+            padding: 0 28px;
+            border-bottom: 1px solid var(--border);
+            gap: 0;
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-dim);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-radius: 0;
+            transform: none;
+        }
+
+        .tab-btn:hover { color: var(--text); box-shadow: none; }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .modal-body {
+            padding: 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+
+        /* content styles inside modal */
+        .guide-section {
+            margin-bottom: 28px;
+        }
+
+        .guide-section:last-child { margin-bottom: 0; }
+
+        .guide-h {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guide-h .step-num {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 10px;
+        }
+
+        .guide-p {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.75;
+            margin-bottom: 10px;
+        }
+
+        .guide-p strong { color: var(--text); font-weight: 600; }
+
+        .guide-p em { color: var(--accent2); font-style: normal; }
+
+        .code-block {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--accent2);
+            white-space: pre;
+            overflow-x: auto;
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .note-box {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 6px 6px 0;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.65;
+            margin: 10px 0;
+        }
+
+        .note-box strong { color: var(--accent); }
+
+        .warn-box {
+            background: rgba(255, 107, 53, 0.05);
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            border-left: 3px solid var(--accent2);
+            border-radius: 0 6px 6px 0;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.65;
+            margin: 10px 0;
+        }
+
+        .warn-box strong { color: var(--accent2); }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+        @media (max-width: 560px) {
+            .points-grid { grid-template-columns: 1fr; }
+            .target-card { flex-direction: column; align-items: stretch; }
+            .result-value { font-size: 36px; }
+            h1 { font-size: 22px; }
+            header { flex-direction: column; gap: 16px; }
+            .modal-tabs { padding: 0 16px; }
+            .modal-body { padding: 20px 16px; }
+            .modal-header { padding: 18px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="header-left">
+            <div class="tag">Klipper / 3D Printing</div>
+            <h1>Thermistor <span>Beta</span> Calculator</h1>
+            <p class="subtitle">Corrects thermistor non-linearity using 3 calibration points measured with an external thermometer.</p>
+        </div>
+        <button class="help-btn" onclick="openModal()">
+            <span class="icon">?</span>
+            How to use
+        </button>
+    </header>
+
+    <div class="card">
+        <div class="card-label">
+            <span class="dot"></span>
+            Calibration points — actual temp (°C) + beta value
+        </div>
+        <div class="points-grid">
+            <div class="point-col">
+                <div class="point-num">POINT 01</div>
+                <div class="field">
+                    <label>Actual Temp (°C)</label>
+                    <input type="number" id="t1" placeholder="e.g. 50">
+                </div>
+                <div class="field">
+                    <label>Beta value</label>
+                    <input type="number" id="beta1" value="3800">
+                </div>
+            </div>
+            <div class="point-col">
+                <div class="point-num">POINT 02</div>
+                <div class="field">
+                    <label>Actual Temp (°C)</label>
+                    <input type="number" id="t2" placeholder="e.g. 150">
+                </div>
+                <div class="field">
+                    <label>Beta value</label>
+                    <input type="number" id="beta2" value="4200">
+                </div>
+            </div>
+            <div class="point-col">
+                <div class="point-num">POINT 03</div>
+                <div class="field">
+                    <label>Actual Temp (°C)</label>
+                    <input type="number" id="t3" placeholder="e.g. 250">
+                </div>
+                <div class="field">
+                    <label>Beta value</label>
+                    <input type="number" id="beta3" value="4600">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">
+            <span class="dot"></span>
+            Target temperature
+        </div>
+        <div class="target-card">
+            <div class="target-field">
+                <label>Calculate Beta for this temperature (°C)</label>
+                <input type="number" id="temperature" placeholder="e.g. 200">
+            </div>
+            <button class="calc-btn" onclick="calculate()">Calculate →</button>
+        </div>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-label">
+            <span class="dot"></span>
+            Result
+        </div>
+        <div>
+            <span class="result-value" id="resultValue">—</span><span class="result-unit">β</span>
+        </div>
+        <div class="result-desc" id="resultDesc"></div>
+        <div class="klipper-hint" id="klipperHint">
+            <div class="klipper-hint-label">Klipper config — printer.cfg</div>
+            <div class="klipper-code" id="klipperCode"></div>
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <div class="how-title">How it works</div>
+        <div class="how-text">
+            Thermistors have non-linear beta values across their temperature range. 
+            This tool fits a quadratic curve through 3 measured calibration points using Gaussian elimination, 
+            then interpolates the correct beta for any target temperature — giving you a more accurate value than a single fixed beta.
+        </div>
+    </div>
+
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">How to <span>calibrate</span> your thermistor</div>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+
+        <div class="modal-tabs">
+            <button class="tab-btn active" onclick="switchTab(0)">Why calibrate?</button>
+            <button class="tab-btn" onclick="switchTab(1)">Measure temp</button>
+            <button class="tab-btn" onclick="switchTab(2)">Find Beta values</button>
+            <button class="tab-btn" onclick="switchTab(3)">Apply to Klipper</button>
+        </div>
+
+        <div class="modal-body">
+
+            <!-- TAB 0: Why -->
+            <div class="tab-panel active" id="tab-0">
+                <div class="guide-section">
+                    <div class="guide-h">The problem with thermistors</div>
+                    <p class="guide-p">
+                        Thermistors are cheap temperature sensors used in almost every 3D printer hotend and heated bed.
+                        They're rated with a <strong>beta (β) value</strong> — a number that describes how their resistance changes with temperature.
+                    </p>
+                    <p class="guide-p">
+                        The issue: <em>the beta value is not constant.</em> It varies with temperature, and cheap thermistors often have manufacturing tolerances of ±5%. This means your printer might think it's at 220°C when the actual temperature is 215°C or 225°C.
+                    </p>
+                    <div class="warn-box">
+                        <strong>⚠ Real-world impact:</strong> A 5–10°C error leads to inconsistent layer adhesion, stringing, or even clogs — because filament behaves very differently across that range.
+                    </div>
+                    <p class="guide-p">
+                        This tool lets you measure the real temperature at several points and calculates the correct beta using <strong>quadratic interpolation</strong> — much more accurate than a single fixed value from a datasheet.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 1: Measure -->
+            <div class="tab-panel" id="tab-1">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 1</span> What you need</div>
+                    <p class="guide-p">
+                        You need an <strong>external temperature measurement device</strong>. Any of these work:
+                    </p>
+                    <p class="guide-p">
+                        — <strong>K-type thermocouple probe</strong> — most accurate for this task. A multimeter with thermocouple input works great. Position the tip as close to the heater block as possible, or use thermal paste for better contact.<br>
+                        — <strong>IR thermometer</strong> — convenient but less accurate on shiny metal surfaces; matte surfaces give better readings.<br>
+                        — <strong>Thermal camera</strong> — works well and lets you see the temperature distribution across the whole hotend area at once.
+                    </p>
+                </div>
+                <hr class="divider">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 2</span> Take 3 readings</div>
+                    <p class="guide-p">
+                        Heat your hotend (or bed) to 3 different temperatures using your normal Klipper interface.
+                        Wait at least <strong>2–3 minutes</strong> after it stabilizes before reading the external thermometer.
+                    </p>
+                    <p class="guide-p">
+                        Recommended temperature points for a hotend:
+                    </p>
+                    <div class="code-block">Point 1: set 190°C → read external thermometer → note actual °C
+Point 2: set 220°C → read external thermometer → note actual °C
+Point 3: set 250°C → read external thermometer → note actual °C</div>
+                    <div class="warn-box">
+                        <strong>Important:</strong> Spread your 3 points across the range you actually print at. Don't cluster them — the further apart, the better the interpolation.
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Beta -->
+            <div class="tab-panel" id="tab-2">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 3</span> Get Beta at each point</div>
+                    <p class="guide-p">
+                        You need the beta value that Klipper is using <em>at each of those temperatures</em>. 
+                        You can find these in the Klipper source or documentation for your thermistor type.
+                    </p>
+                    <p class="guide-p">
+                        Common starting values for <strong>Generic 3950</strong> thermistors:
+                    </p>
+                    <div class="code-block">~205°C → beta ≈ 4600
+~234°C → beta ≈ 4200
+~270°C → beta ≈ 3800</div>
+                    <div class="note-box">
+                        <strong>Note:</strong> Beta decreases as temperature rises — this is normal NTC thermistor behaviour. The pre-filled defaults in this tool reflect this pattern. Replace them with values from your thermistor's datasheet if available.
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 4</span> Fill in the calculator</div>
+                    <p class="guide-p">
+                        Enter the <strong>actual temperature</strong> you measured externally (not the Klipper target) in the "Actual Temp" field.
+                        Enter the corresponding beta for that reference temperature. Then set your target print temperature and click Calculate.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 3: Apply -->
+            <div class="tab-panel" id="tab-3">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 5</span> Measure thermistor resistance</div>
+                    <p class="guide-p">
+                        For the most accurate calibration, you should also measure the <strong>actual resistance</strong> of your thermistor at a known ambient temperature — rather than relying on the datasheet nominal value (usually 100kΩ at 25°C), which can vary between individual sensors.
+                    </p>
+                    <p class="guide-p">
+                        To do this: <strong>disconnect the thermistor from the board</strong>, let it sit at room temperature until it stabilises, then measure its resistance with a multimeter. At the same time, note the ambient temperature using your external thermometer. These two values go directly into <em>temperature1</em> and <em>resistance1</em> in the config.
+                    </p>
+                    <div class="note-box">
+                        <strong>Example:</strong> You measure 98 450 Ω at 23.5°C — use exactly those values. The more precisely you measure, the better the overall calibration.
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="guide-section">
+                    <div class="guide-h"><span class="step-num">STEP 6</span> Add to printer.cfg</div>
+                    <p class="guide-p">
+                        Define a <strong>custom thermistor</strong> in Klipper and reference it in <em>[extruder]</em>. This keeps all your calibration data in one place and doesn't touch the built-in sensor definitions.
+                    </p>
+                    <div class="code-block">[thermistor MyThermistor]
+temperature1: 24      # ← ambient temp (°C) when resistance was measured
+resistance1: 98450    # ← actual measured resistance (Ω) at temperature1
+beta: 4128            # ← your calculated value from this tool
+
+[extruder]
+sensor_type: MyThermistor
+# ... rest of your extruder config</div>
+                    <div class="note-box">
+                        <strong>All three values matter together.</strong> Using the real measured resistance and actual ambient temperature instead of datasheet defaults eliminates a second source of error on top of the beta correction.
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="guide-section">
+                    <div class="guide-h">After saving</div>
+                    <p class="guide-p">
+                        Run <em>FIRMWARE_RESTART</em> in the Klipper console, then verify with your external thermometer at a couple of temperatures that the readings now match. Small residual errors (&lt;2°C) are normal.
+                    </p>
+                    <div class="warn-box">
+                        <strong>Safety:</strong> Never leave a heating element unattended while calibrating. Make sure your runaway protection is enabled in Klipper.
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /modal-body -->
+    </div><!-- /modal -->
+</div><!-- /modal-overlay -->
+
+<script>
+    /* ── Calculator ── */
+    function findCoefficients(points) {
+        let [beta1, t1] = points[0];
+        let [beta2, t2] = points[1];
+        let [beta3, t3] = points[2];
+        let A = [
+            [Math.pow(t1,2), t1, 1],
+            [Math.pow(t2,2), t2, 1],
+            [Math.pow(t3,2), t3, 1]
+        ];
+        let B = [beta1, beta2, beta3];
+        return solveLinearSystem(A, B);
+    }
+
+    function solveLinearSystem(A, B) {
+        let n = A.length;
+        let M = [];
+        for (let i = 0; i < n; i++) M.push(A[i].concat([B[i]]));
+        for (let i = 0; i < n; i++) {
+            let maxRow = i;
+            for (let j = i+1; j < n; j++) if (Math.abs(M[j][i]) > Math.abs(M[maxRow][i])) maxRow = j;
+            [M[i], M[maxRow]] = [M[maxRow], M[i]];
+            for (let j = i+1; j < n; j++) {
+                let ratio = M[j][i] / M[i][i];
+                for (let k = i; k < n+1; k++) M[j][k] -= ratio * M[i][k];
+            }
+        }
+        let X = new Array(n).fill(0);
+        for (let i = n-1; i >= 0; i--) {
+            X[i] = M[i][n] / M[i][i];
+            for (let j = i-1; j >= 0; j--) M[j][n] -= M[j][i] * X[i];
+        }
+        return X;
+    }
+
+    function findBeta(t, coeff) { return coeff[0]*t*t + coeff[1]*t + coeff[2]; }
+
+    function showError(msg) {
+        const el = document.getElementById('error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('resultCard').style.display = 'none';
+    }
+
+    function calculate() {
+        document.getElementById('error').style.display = 'none';
+        const t1   = parseFloat(document.getElementById('t1').value);
+        const beta1 = parseFloat(document.getElementById('beta1').value);
+        const t2   = parseFloat(document.getElementById('t2').value);
+        const beta2 = parseFloat(document.getElementById('beta2').value);
+        const t3   = parseFloat(document.getElementById('t3').value);
+        const beta3 = parseFloat(document.getElementById('beta3').value);
+        const temperature = parseFloat(document.getElementById('temperature').value);
+
+        if ([t1,beta1,t2,beta2,t3,beta3,temperature].some(isNaN)) { showError('Please fill in all fields.'); return; }
+        if (t1===t2 || t2===t3 || t1===t3) { showError('Temperature points must be different.'); return; }
+
+        const points = [[beta1,t1],[beta2,t2],[beta3,t3]];
+        const coefficients = findCoefficients(points);
+        const result = findBeta(temperature, coefficients);
+        const rounded = Math.round(result);
+
+        const card = document.getElementById('resultCard');
+        card.style.display = 'none';
+        void card.offsetWidth;
+        card.style.display = 'block';
+
+        document.getElementById('resultValue').textContent = rounded;
+        document.getElementById('resultDesc').innerHTML =
+            `Calculated beta at <span>${temperature}°C</span> using quadratic interpolation of 3 calibration points`;
+        document.getElementById('klipperCode').textContent =
+`[thermistor MyThermistor]
+temperature1: 25
+resistance1: 100000
+beta: ${rounded}
+
+[extruder]
+sensor_type: MyThermistor`;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+
+    /* ── Modal ── */
+    function openModal() { document.getElementById('modalOverlay').classList.add('active'); }
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+    function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+    let currentTab = 0;
+    function switchTab(idx) {
+        document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+        document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+        currentTab = idx;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
