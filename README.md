@@ -2,7 +2,7 @@
 
 A simple offline tool to calculate a corrected **beta value** for your thermistor — for more accurate temperature readings in Klipper.
 
-**[Try it online](https://yourusername.github.io/thermistor-beta-calculator/)** <!-- replace with your GitHub Pages link -->
+**[Try it online](https://xyz-sign.github.io/thermistor-beta-calculator/)** <!-- replace with your GitHub Pages link -->
 
 ---
 
